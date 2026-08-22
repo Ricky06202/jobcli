@@ -6,6 +6,7 @@ import {
   handleJobs,
   handleStats,
   handleSearch,
+  handleInfo,
 } from "./commands";
 import { db } from "../db";
 import { jobs } from "../db/schema";
@@ -131,6 +132,7 @@ async function main() {
         case "jobs": await handleJobs(interaction); break;
         case "stats": await handleStats(interaction); break;
         case "search": await handleSearch(interaction); break;
+        case "info": await handleInfo(interaction); break;
       }
     } catch (err) {
       console.error(chalk.red(`  Error: ${err}`));

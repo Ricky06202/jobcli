@@ -28,6 +28,10 @@ export const commands = [
     .addStringOption((opt) =>
       opt.setName("query").setDescription("Search term").setRequired(true)
     ),
+
+  new SlashCommandBuilder()
+    .setName("info")
+    .setDescription("How this bot works"),
 ];
 
 function jobEmbed(job: any) {
@@ -168,6 +172,58 @@ export async function handleSearch(interaction: ChatInputCommandInteraction) {
 
   const embeds = rows.map(jobEmbed);
   await interaction.editReply({ content: `🔍 **${rows.length} resultados** para "${query}":`, embeds });
+}
+
+export async function handleInfo(interaction: ChatInputCommandInteraction) {
+  const embed = new EmbedBuilder()
+    .setTitle("📋 Cómo funciona jobcli")
+    .setColor(0x3498db)
+    .setDescription("Bot de búsqueda inteligente de empleo remoto. Busca en múltiples fuentes RSS, filtra basándose en tu stack tecnológico y prioriza las mejores ofertas.")
+    .addFields(
+      {
+        name: "🔍 Fuentes de empleo",
+        value: [
+          "• We Work Remotely (Programming + Full-Stack)",
+          "• Remotive",
+          "• Himalayas",
+          "• RemoteOK",
+        ].join("\n"),
+      },
+      {
+        name: "🧠 Filtro inteligente",
+        value: [
+          "Cada oferta pasa por 4 pasos:",
+          "1️⃣ **Blacklist dura** — descarta construction, non-software, explotación, non-tech",
+          "2️⃣ **Restricción geográfica** — descarta empleos con restricción de país/visa",
+          "3️⃣ **Whitelist de tech** — requiere match con 2+ tecnologías de tu stack",
+          "4️⃣ **Scoring 1-10** — prioriza por profundidad tech, presupuesto y claridad del scope",
+        ].join("\n"),
+      },
+      {
+        name: "⚙️ Tu stack personalizado",
+        value: [
+          "TypeScript, JavaScript, Bun, Python, Rust",
+          "React, Next.js, Hono, React Native, Expo",
+          "Tauri, Drizzle ORM, PostgreSQL, SQLite",
+          "Docker, Linux, NixOS, Git",
+          "",
+          "**Dominios:** SaaS, Full-Stack, Mobile, Scraping, Game Dev (Godot)",
+        ].join("\n"),
+      },
+      {
+        name: "📊 Comandos disponibles",
+        value: [
+          "`/fetch` — Buscar trabajos nuevos ahora",
+          "`/jobs` — Ver top trabajos (filtrable por score)",
+          "`/search query:react` — Buscar por palabra clave",
+          "`/stats` — Ver estadísticas",
+          "`/info` — Esta información",
+        ].join("\n"),
+      },
+    )
+    .setFooter({ text: "Auto-fetch cada 30 minutos • Powered by Bun + Drizzle ORM" });
+
+  await interaction.reply({ embeds: [embed] });
 }
 
 // ─── Helpers (duplicated from fetch.ts to keep bot self-contained) ───
