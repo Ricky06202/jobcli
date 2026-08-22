@@ -1,0 +1,135 @@
+// ─── Job category channels ───
+// Cada canal de Discord tiene un perfil con keywords propias.
+// Un job se envía a un canal si matchea sus keywords.
+//
+// COMO CONFIGURAR: creá el canal en Discord, copiá su ID
+// (click derecho -> Copiar ID del canal) y ponelo en `channelId`.
+// channelId vacío = canal desactivado.
+
+export interface JobChannel {
+  name: string;
+  description: string;
+  channelId: string; // "" = desactivado
+  keywords: string[]; // cualquier match activa el canal
+  requireBoth?: string[][]; // categorías que deben matchear TODAS (ej: fullstack)
+}
+
+export const JOB_CHANNELS: JobChannel[] = [
+  {
+    name: "Frontend",
+    description: "React, Vue, Svelte, CSS, Tailwind, Angular, UI",
+    channelId: "",
+    keywords: [
+      "react", "vue", "svelte", "angular", "css", "tailwind",
+      "frontend", "front-end", "html", "ui engineer", "webpack",
+      "vite", "storybook", "next.js", "nextjs", "astro", "remix",
+    ],
+  },
+  {
+    name: "Backend",
+    description: "Node, Python, Rust, Go, APIs, bases de datos, servidores",
+    channelId: "",
+    keywords: [
+      "backend", "back-end", "node.js", "nodejs", "python", "rust", "go",
+      "golang", "api", "rest", "graphql", "database", "postgresql",
+      "postgres", "mysql", "sqlite", "mongo", "redis", "server",
+      "django", "fastapi", "flask", "express", "nestjs", "microservices",
+    ],
+  },
+  {
+    name: "Fullstack",
+    description: "Frontend + Backend combinados",
+    channelId: "",
+    requireBoth: [
+      // frontend keywords
+      [
+        "react", "vue", "svelte", "angular", "css", "tailwind",
+        "frontend", "front-end", "html", "next.js", "nextjs",
+      ],
+      // backend keywords
+      [
+        "backend", "back-end", "node.js", "nodejs", "python", "rust", "go",
+        "golang", "api", "rest", "graphql", "postgresql", "postgres",
+        "django", "fastapi", "express", "nestjs", "microservices",
+      ],
+    ],
+    keywords: ["fullstack", "full-stack", "full stack"],
+  },
+  {
+    name: "DevOps / Cloud",
+    description: "Docker, Kubernetes, AWS, GCP, CI/CD, Linux, Terraform",
+    channelId: "",
+    keywords: [
+      "devops", "kubernetes", "k8s", "docker", "aws", "gcp", "azure",
+      "terraform", "ci/cd", "ci cd", "linux", "nginx", "sre",
+      "site reliability", "helm", "ansible", "prometheus", "grafana",
+      "cloud infrastructure", "infrastructure engineer", "devops engineer",
+    ],
+  },
+  {
+    name: "Mobile",
+    description: "React Native, Flutter, Expo, iOS, Android",
+    channelId: "",
+    keywords: [
+      "react native", "flutter", "expo", "ios", "android", "kotlin",
+      "swift", "mobile", "mobile developer", "mobile app",
+    ],
+  },
+  {
+    name: "Game Dev",
+    description: "Godot, Unity, Unreal, Game Dev, diseño de juegos",
+    channelId: "",
+    keywords: [
+      "godot", "unity", "unreal", "game dev", "game development",
+      "game developer", "gaming", "gameplay", "game engine",
+    ],
+  },
+  {
+    name: "QA / Testing",
+    description: "QA, testing, automatización de pruebas",
+    channelId: "",
+    keywords: [
+      "qa", "quality assurance", "test engineer", "testing",
+      "automation test", "test automation", "selenium", "cypress",
+      "playwright", "test analyst",
+    ],
+  },
+  {
+    name: "Data / IA",
+    description: "Python, ML, IA, Data Engineering, análisis de datos",
+    channelId: "",
+    keywords: [
+      "data engineer", "data science", "data scientist", "machine learning",
+      "ml engineer", "ai engineer", "artificial intelligence", "llm",
+      "nlp", "tensorflow", "pytorch", "data analyst", "big data",
+      "spark", "kafka", "data warehouse", "etl",
+    ],
+  },
+];
+
+export function getActiveChannels(): JobChannel[] {
+  return JOB_CHANNELS.filter((c) => c.channelId !== "");
+}
+
+function matchesAny(text: string, keywords: string[]): boolean {
+  const lower = text.toLowerCase();
+  return keywords.some((kw) => lower.includes(kw));
+}
+
+// Determina a qué canales de categoría debe ir un job.
+// - Si tiene `keywords`: alcanza con 1 match.
+// - Si tiene `requireBoth`: cada sub-lista debe matchear al menos 1
+//   (ej: fullstack = 1 frontend + 1 backend).
+export function matchChannels(text: string): JobChannel[] {
+  const active = getActiveChannels();
+  const lower = text.toLowerCase();
+
+  return active.filter((c) => {
+    // Regla especial: si es "fullstack" en el texto y existe canal fullstack,
+    // prioriza mandarlo ahí.
+    if (c.requireBoth && c.requireBoth.length > 0) {
+      return c.requireBoth.every((sub) => sub.some((kw) => lower.includes(kw)));
+    }
+    return matchesAny(lower, c.keywords);
+  });
+}

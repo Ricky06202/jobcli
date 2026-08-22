@@ -7,6 +7,7 @@ import {
   handleStats,
   handleSearch,
   handleInfo,
+  handleCanales,
 } from "./commands";
 import { db } from "../db";
 import { jobs } from "../db/schema";
@@ -74,6 +75,7 @@ async function autoFetch(client: Client) {
           url: raw.url,
           company: raw.company,
           source: raw.source,
+          description: raw.description,
           budget,
           budgetType: type,
           techStack,
@@ -85,10 +87,10 @@ async function autoFetch(client: Client) {
   }
 
   if (newViable.length > 0) {
-    const sorted = newViable.sort((a, b) => b.score - a.score);
-
     const { EmbedBuilder } = await import("discord.js");
-    for (const { job } of sorted) {
+    const { matchChannels } = await import("./channels");
+
+    for (const { job } of newViable.sort((a, b) => b.score - a.score)) {
       const scoreColor =
         (job.priorityScore || 0) >= 8 ? 0x2ecc71 :
         (job.priorityScore || 0) >= 5 ? 0xf1c40f : 0xe74c3c;
@@ -106,7 +108,18 @@ async function autoFetch(client: Client) {
       if (job.budget) embed.addFields({ name: "Presupuesto", value: `$${job.budget.toLocaleString()} ${job.budgetType || ""}`, inline: true });
       if (job.techStack) embed.addFields({ name: "Stack", value: job.techStack.substring(0, 200) });
 
+      // Canal personal (el del dueño del bot)
       await channel.send({ embeds: [embed] });
+
+      // Canales de categoría
+      const matchText = `${job.title} ${job.description || ""} ${job.techStack || ""}`;
+      const matched = matchChannels(matchText);
+      for (const cat of matched) {
+        const catChannel = client.channels.cache.get(cat.channelId);
+        if (catChannel && "send" in catChannel) {
+          await catChannel.send({ embeds: [embed] });
+        }
+      }
     }
   }
 }
@@ -153,6 +166,7 @@ async function main() {
         case "stats": await handleStats(interaction); break;
         case "search": await handleSearch(interaction); break;
         case "info": await handleInfo(interaction); break;
+        case "canales": await handleCanales(interaction); break;
       }
     } catch (err) {
       console.error(chalk.red(`  Error: ${err}`));

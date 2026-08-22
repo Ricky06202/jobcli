@@ -32,6 +32,10 @@ export const commands = [
   new SlashCommandBuilder()
     .setName("info")
     .setDescription("How this bot works"),
+
+  new SlashCommandBuilder()
+    .setName("canales")
+    .setDescription("List job category channels"),
 ];
 
 function jobEmbed(job: any) {
@@ -225,12 +229,32 @@ export async function handleInfo(interaction: ChatInputCommandInteraction) {
           "`/fetch` — Buscar trabajos nuevos ahora",
           "`/jobs` — Ver top trabajos (filtrable por score)",
           "`/search query:react` — Buscar por palabra clave",
+          "`/canales` — Ver canales por categoría",
           "`/stats` — Ver estadísticas",
           "`/info` — Esta información",
         ].join("\n"),
       },
     )
     .setFooter({ text: "Auto-fetch cada 30 minutos • Powered by Bun + Drizzle ORM" });
+
+  await interaction.reply({ embeds: [embed] });
+}
+
+export async function handleCanales(interaction: ChatInputCommandInteraction) {
+  const { JOB_CHANNELS } = await import("./channels");
+
+  const embed = new EmbedBuilder()
+    .setTitle("📂 Canales por categoría")
+    .setColor(0x9b59b6)
+    .setDescription("Cada canal muestra trabajos que matchean su especialidad. Un job puede aparecer en varios canales si aplica a varias categorías.")
+    .addFields(
+      JOB_CHANNELS.map((c) => ({
+        name: c.name,
+        value: c.description,
+        inline: true,
+      })),
+    )
+    .setFooter({ text: "Mandá tus dudas en /comandos" });
 
   await interaction.reply({ embeds: [embed] });
 }
