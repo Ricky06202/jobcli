@@ -18,7 +18,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "Frontend",
     description: "React, Vue, Svelte, CSS, Tailwind, Angular, UI",
-    channelId: "",
+    channelId: "1540840306529013790",
     keywords: [
       "react", "vue", "svelte", "angular", "css", "tailwind",
       "frontend", "front-end", "html", "ui engineer", "webpack",
@@ -28,7 +28,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "Backend",
     description: "Node, Python, Rust, Go, APIs, bases de datos, servidores",
-    channelId: "",
+    channelId: "1540840344072233031",
     keywords: [
       "backend", "back-end", "node.js", "nodejs", "python", "rust", "go",
       "golang", "api", "rest", "graphql", "database", "postgresql",
@@ -39,7 +39,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "Fullstack",
     description: "Frontend + Backend combinados",
-    channelId: "",
+    channelId: "1540840397138563242",
     requireBoth: [
       // frontend keywords
       [
@@ -58,7 +58,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "DevOps / Cloud",
     description: "Docker, Kubernetes, AWS, GCP, CI/CD, Linux, Terraform",
-    channelId: "",
+    channelId: "1540840449344938044",
     keywords: [
       "devops", "kubernetes", "k8s", "docker", "aws", "gcp", "azure",
       "terraform", "ci/cd", "ci cd", "linux", "nginx", "sre",
@@ -69,7 +69,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "Mobile",
     description: "React Native, Flutter, Expo, iOS, Android",
-    channelId: "",
+    channelId: "1540840490952302612",
     keywords: [
       "react native", "flutter", "expo", "ios", "android", "kotlin",
       "swift", "mobile", "mobile developer", "mobile app",
@@ -78,7 +78,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "Game Dev",
     description: "Godot, Unity, Unreal, Game Dev, diseño de juegos",
-    channelId: "",
+    channelId: "1540840505565388810",
     keywords: [
       "godot", "unity", "unreal", "game dev", "game development",
       "game developer", "gaming", "gameplay", "game engine",
@@ -87,7 +87,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "QA / Testing",
     description: "QA, testing, automatización de pruebas",
-    channelId: "",
+    channelId: "1540840541900505199",
     keywords: [
       "qa", "quality assurance", "test engineer", "testing",
       "automation test", "test automation", "selenium", "cypress",
@@ -97,7 +97,7 @@ export const JOB_CHANNELS: JobChannel[] = [
   {
     name: "Data / IA",
     description: "Python, ML, IA, Data Engineering, análisis de datos",
-    channelId: "",
+    channelId: "1540840582577135706",
     keywords: [
       "data engineer", "data science", "data scientist", "machine learning",
       "ml engineer", "ai engineer", "artificial intelligence", "llm",
