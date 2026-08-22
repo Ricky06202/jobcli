@@ -19,8 +19,8 @@ const CHANNEL_NEW_JOBS = process.env.CHANNEL_NEW_JOBS!;
 const FETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 // ─── Register slash commands ───
+const rest = new REST({ version: "10" }).setToken(TOKEN);
 async function registerCommands() {
-  const rest = new REST({ version: "10" }).setToken(TOKEN);
   console.log(chalk.dim("  Registering slash commands..."));
 
   await rest.put(Routes.applicationCommands(CLIENT_ID), {
@@ -127,6 +127,16 @@ async function main() {
   client.once(Events.ClientReady, (c) => {
     console.log(chalk.green(`  ✓ Bot online: ${c.user.tag}`));
     console.log(chalk.dim(`  Auto-fetch cada ${FETCH_INTERVAL_MS / 60000} minutos`));
+
+    // Force guild-local command sync so /info and friends appear instantly
+    // (global commands can take up to 1 hour to propagate on Discord)
+    for (const guild of c.guilds.cache.values()) {
+      rest.put(Routes.applicationGuildCommands(CLIENT_ID, guild.id), {
+        body: commands.map((cmd) => cmd.toJSON()),
+      })
+        .then(() => console.log(chalk.dim(`  ✓ Commands synced to guild ${guild.name}`)))
+        .catch((err) => console.error(chalk.red(`  ✗ Guild sync failed for ${guild.name}: ${err}`)));
+    }
 
     // Start auto-fetch loop
     autoFetch(client);
