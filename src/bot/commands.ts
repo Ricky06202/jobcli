@@ -36,6 +36,13 @@ export const commands = [
   new SlashCommandBuilder()
     .setName("canales")
     .setDescription("List job category channels"),
+
+  new SlashCommandBuilder()
+    .setName("poblar")
+    .setDescription("Send existing jobs to category channels")
+    .addIntegerOption((opt) =>
+      opt.setName("limit").setDescription("How many jobs to distribute (default 10)").setRequired(false)
+    ),
 ];
 
 function jobEmbed(job: any) {
@@ -257,6 +264,48 @@ export async function handleCanales(interaction: ChatInputCommandInteraction) {
     .setFooter({ text: "Mandá tus dudas en /comandos" });
 
   await interaction.reply({ embeds: [embed] });
+}
+
+export async function handlePoblar(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
+  const { matchChannels } = await import("./channels");
+  const limit = Math.min(interaction.options.getInteger("limit") || 10, 30);
+
+  const rows = await db.select().from(jobs)
+    .where(and(eq(jobs.status, "new"), gte(jobs.priorityScore, 5)))
+    .orderBy(desc(jobs.priorityScore))
+    .limit(limit);
+
+  if (rows.length === 0) {
+    await interaction.editReply("No hay trabajos viables en la base para distribuir.");
+    return;
+  }
+
+  let sent = 0;
+  const byChannel: Record<string, number> = {};
+
+  for (const job of rows) {
+    const matchText = `${job.title} ${job.description || ""} ${job.techStack || ""}`;
+    const matched = matchChannels(matchText);
+
+    for (const cat of matched) {
+      const ch = interaction.client.channels.cache.get(cat.channelId);
+      if (ch && "send" in ch) {
+        await ch.send({ embeds: [jobEmbed(job)] });
+        sent++;
+        byChannel[cat.name] = (byChannel[cat.name] || 0) + 1;
+      }
+    }
+  }
+
+  const summary = Object.entries(byChannel)
+    .map(([name, count]) => `**${name}**: ${count}`)
+    .join(" • ");
+
+  await interaction.editReply(
+    `📤 Distribuidos **${rows.length}** trabajos en las categorías:\n${summary}`
+  );
 }
 
 // ─── Helpers (duplicated from fetch.ts to keep bot self-contained) ───
