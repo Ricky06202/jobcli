@@ -3,6 +3,7 @@ import { jobs } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { fetchFromSource, type RawJob } from "../fetcher";
 import { evaluateJob } from "../filter";
+import { extractTechStack } from "../filter/techs";
 import chalk from "chalk";
 
 function extractBudget(text: string): { budget: number | null; type: string | null } {
@@ -17,30 +18,6 @@ function extractBudget(text: string): { budget: number | null; type: string | nu
     };
   }
   return { budget: null, type: null };
-}
-
-function extractTechStack(text: string): string {
-  const known = [
-    // Core
-    "typescript", "javascript", "bun", "node.js", "nodejs", "python", "rust",
-    // Frontend
-    "react", "next.js", "nextjs", "hono", "react native", "expo",
-    // Desktop
-    "tauri",
-    // Databases
-    "drizzle", "postgresql", "postgres", "sqlite",
-    // DevOps
-    "docker", "linux", "nixos", "git", "github",
-    // Other
-    "vue", "svelte", "angular", "astro", "tailwind",
-    "mongodb", "redis", "supabase",
-    "graphql", "rest", "api",
-    "kubernetes", "aws", "gcp", "azure", "vercel", "netlify",
-    "godot", "flutter", "swift", "kotlin",
-    "django", "fastapi", "flask", "ruby", "rails",
-  ];
-  const lower = text.toLowerCase();
-  return known.filter((t) => lower.includes(t)).join(", ");
 }
 
 export async function fetchJobs(source?: string) {

@@ -31,9 +31,10 @@ export const JOB_CHANNELS: JobChannel[] = [
     channelId: "1540840344072233031",
     keywords: [
       "backend", "back-end", "node.js", "nodejs", "python", "rust", "go",
-      "golang", "api", "rest", "graphql", "database", "postgresql",
-      "postgres", "mysql", "sqlite", "mongo", "redis", "server",
-      "django", "fastapi", "flask", "express", "nestjs", "microservices",
+      "golang", "java", "c#", "csharp", "blazor", "api", "rest", "graphql",
+      "database", "postgresql", "postgres", "mysql", "sqlite", "mongo",
+      "redis", "server", "django", "fastapi", "flask", "express", "nestjs",
+      "microservices",
     ],
   },
   {
@@ -61,7 +62,7 @@ export const JOB_CHANNELS: JobChannel[] = [
     channelId: "1540840449344938044",
     keywords: [
       "devops", "kubernetes", "k8s", "docker", "aws", "gcp", "azure",
-      "terraform", "ci/cd", "ci cd", "linux", "nginx", "sre",
+      "terraform", "ci/cd", "ci cd", "linux", "bash", "shell", "nginx", "sre",
       "site reliability", "helm", "ansible", "prometheus", "grafana",
       "cloud infrastructure", "infrastructure engineer", "devops engineer",
     ],
@@ -80,7 +81,7 @@ export const JOB_CHANNELS: JobChannel[] = [
     description: "Godot, Unity, Unreal, Game Dev, diseño de juegos",
     channelId: "1540840505565388810",
     keywords: [
-      "godot", "unity", "unreal", "game dev", "game development",
+      "godot", "gdscript", "unity", "unreal", "game dev", "game development",
       "game developer", "gaming", "gameplay", "game engine",
     ],
   },

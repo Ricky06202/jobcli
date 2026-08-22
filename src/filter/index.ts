@@ -1,3 +1,5 @@
+import { matchTechs } from "./techs";
+
 export interface FilterResult {
   status: "viable" | "discarded";
   reason: string;
@@ -35,29 +37,6 @@ const BLACKLIST_KEYWORDS: Record<string, string[]> = {
     "medical", "nursing", "pharmaceutical", "biotech",
   ],
 };
-
-// ─── WHITELIST (must match 2+) ───
-const WHITELIST_TECHS = [
-  // ─── Core Languages ───
-  "typescript", "javascript", "bun", "python", "rust",
-
-  // ─── Frontend & Web Frameworks ───
-  "react", "next.js", "nextjs", "hono", "react native", "expo",
-
-  // ─── Desktop & Cross-Platform ───
-  "tauri",
-
-  // ─── Databases & ORMs ───
-  "drizzle", "drizzle orm", "postgresql", "postgres", "sqlite",
-
-  // ─── DevOps & Tools ───
-  "docker", "linux", "nixos", "fedora", "git", "github",
-
-  // ─── Domains (high priority) ───
-  "saas", "full-stack", "fullstack", "api", "rest",
-  "mobile app", "web app", "saas platform",
-  "automation", "scraping", "godot", "game dev", "game development",
-];
 
 // ─── GEOGRAPHIC RESTRICTIONS ───
 const GEO_RESTRICTIONS = [
@@ -108,13 +87,8 @@ export function evaluateJob(
     }
   }
 
-  // ─── STEP 3: Whitelist — must match 2+ techs ───
-  const matchedTechs: string[] = [];
-  for (const tech of WHITELIST_TECHS) {
-    if (text.includes(tech.toLowerCase())) {
-      matchedTechs.push(tech);
-    }
-  }
+  // ─── STEP 3: Whitelist — must match 2+ techs (word-boundary aware) ───
+  const matchedTechs = matchTechs(text);
 
   if (matchedTechs.length < 2) {
     return {

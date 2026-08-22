@@ -2,6 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder, type ChatInputCommandInteraction } f
 import { db } from "../db";
 import { jobs } from "../db/schema";
 import { eq, desc, sql, and, like, or, gte, ne } from "drizzle-orm";
+import { extractTechStack } from "../filter/techs";
 
 export const commands = [
   new SlashCommandBuilder()
@@ -214,7 +215,7 @@ export async function handleInfo(interaction: ChatInputCommandInteraction) {
           "• We Work Remotely (Programming + Full-Stack)",
           "• Remotive",
           "• Himalayas",
-          "• RemoteOK",
+          "• Landing.jobs",
         ].join("\n"),
       },
       {
@@ -228,14 +229,18 @@ export async function handleInfo(interaction: ChatInputCommandInteraction) {
         ].join("\n"),
       },
       {
-        name: "⚙️ Tu stack personalizado",
+        name: "⚙️ Stack que filtra",
         value: [
-          "TypeScript, JavaScript, Bun, Python, Rust",
-          "React, Next.js, Hono, React Native, Expo",
-          "Tauri, Drizzle ORM, PostgreSQL, SQLite",
-          "Docker, Linux, NixOS, Git",
+          "**JS/TS:** TypeScript, JavaScript, Bun, Node, Hono, Express, React, Next.js, Astro, Svelte, HTML, CSS, Tailwind",
+          "**Python:** Python, FastAPI, Django",
+          "**Otros lenguajes:** Go, Java, C#, C, Rust",
+          "**Mobile/Desktop:** React Native, Expo, Tauri",
+          "**Game Dev:** Godot (GDScript)",
+          "**Bases de datos:** PostgreSQL, MySQL, SQLite, Drizzle ORM",
+          "**Deploy:** Vercel, Cloudflare",
+          "**DevOps:** Docker, Linux, NixOS, Git",
           "",
-          "**Dominios:** SaaS, Full-Stack, Mobile, Scraping, Game Dev (Godot)",
+          "**Dominios:** SaaS, Full-Stack, Web, Mobile, Scraping, Autenticación",
         ].join("\n"),
       },
       {
@@ -326,19 +331,4 @@ function extractBudget(text: string): { budget: number | null; type: string | nu
     return { budget, type: isHourly ? "hourly" : isMonthly ? "monthly" : "fixed" };
   }
   return { budget: null, type: null };
-}
-
-function extractTechStack(text: string): string {
-  const known = [
-    "typescript", "javascript", "bun", "node.js", "nodejs", "python", "rust",
-    "react", "next.js", "nextjs", "hono", "react native", "expo",
-    "tauri", "drizzle", "postgresql", "postgres", "sqlite",
-    "docker", "linux", "nixos", "git", "github",
-    "vue", "svelte", "angular", "astro", "tailwind",
-    "mongodb", "redis", "supabase", "graphql", "rest", "api",
-    "kubernetes", "aws", "gcp", "azure", "vercel", "netlify",
-    "godot", "flutter", "swift", "kotlin", "django", "fastapi", "flask",
-  ];
-  const lower = text.toLowerCase();
-  return known.filter((t) => lower.includes(t)).join(", ");
 }
