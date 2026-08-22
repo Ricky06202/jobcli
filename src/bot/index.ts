@@ -85,13 +85,10 @@ async function autoFetch(client: Client) {
   }
 
   if (newViable.length > 0) {
-    const top = newViable
-      .filter((j) => j.score >= 5)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
+    const sorted = newViable.sort((a, b) => b.score - a.score);
 
-    for (const { job } of top) {
-      const { EmbedBuilder } = await import("discord.js");
+    const { EmbedBuilder } = await import("discord.js");
+    for (const { job } of sorted) {
       const scoreColor =
         (job.priorityScore || 0) >= 8 ? 0x2ecc71 :
         (job.priorityScore || 0) >= 5 ? 0xf1c40f : 0xe74c3c;
@@ -102,6 +99,7 @@ async function autoFetch(client: Client) {
         .setColor(scoreColor)
         .addFields(
           { name: "Empresa", value: job.company || "Desconocida", inline: true },
+          { name: "Fuente", value: job.source, inline: true },
           { name: "Prioridad", value: `${job.priorityScore || 0}/10`, inline: true },
         );
 
@@ -110,9 +108,6 @@ async function autoFetch(client: Client) {
 
       await channel.send({ embeds: [embed] });
     }
-
-    const discardedNow = newViable.length - top.length;
-    await channel.send(`🔔 **${newViable.length}** trabajos nuevos (score ≥ 5: ${top.length} enviados aquí${discardedNow > 0 ? `, ${discardedNow} con score < 5 solo en la DB` : ""})`);
   }
 }
 

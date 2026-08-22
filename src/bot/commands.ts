@@ -74,6 +74,7 @@ export async function handleFetch(interaction: ChatInputCommandInteraction) {
 
   let added = 0;
   let duplicates = 0;
+  const newViable: any[] = [];
 
   for (const raw of rawJobs) {
     const existing = await db.select().from(jobs).where(eqOp(jobs.url, raw.url)).limit(1);
@@ -98,22 +99,30 @@ export async function handleFetch(interaction: ChatInputCommandInteraction) {
       status: result.status === "discarded" ? "discarded" : "new",
       fetchedAt: new Date(),
     });
-    if (result.status === "viable") added++;
+    if (result.status === "viable") {
+      added++;
+      newViable.push({
+        title: raw.title,
+        company: raw.company || null,
+        url: raw.url,
+        budget,
+        budgetType: type,
+        techStack: techStack || null,
+        source: raw.source,
+        priorityScore: result.priorityScore,
+      });
+    }
   }
 
   await interaction.editReply(
     `✅ Fetch completado: **${added}** trabajos nuevos, **${duplicates}** duplicados omitidos`
   );
 
-  if (added > 0) {
+  if (newViable.length > 0) {
     const channel = interaction.client.channels.cache.get(process.env.CHANNEL_NEW_JOBS!);
     if (channel && "send" in channel) {
-      const newJobs = await db.select().from(jobs)
-        .where(eqOp(jobs.status, "new"))
-        .orderBy(desc(jobs.priorityScore))
-        .limit(5);
-
-      for (const job of newJobs) {
+      const sorted = newViable.sort((a, b) => (b.priorityScore || 0) - (a.priorityScore || 0));
+      for (const job of sorted) {
         await channel.send({ embeds: [jobEmbed(job)] });
       }
     }
