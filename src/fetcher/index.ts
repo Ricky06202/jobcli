@@ -33,7 +33,7 @@ const FEEDS: FeedSource[] = [
       company: item.creator || item["dc:creator"] || "",
       source: "weworkremotely",
     }),
-    keywords: ["react", "typescript", "node", "python", "fullstack", "full-stack", "backend", "frontend", "api", "saas", "contract", "freelance", "sprint"],
+    keywords: ["react", "typescript", "bun", "python", "rust", "hono", "next.js", "tauri", "drizzle", "fullstack", "full-stack", "saas", "contract", "freelance", "sprint", "mobile", "expo", "godot", "scraping", "automation"],
   },
   {
     name: "weworkremotely-contract",
@@ -45,7 +45,7 @@ const FEEDS: FeedSource[] = [
       company: item.creator || item["dc:creator"] || "",
       source: "weworkremotely",
     }),
-    keywords: ["react", "typescript", "node", "python", "fullstack", "full-stack", "backend", "frontend", "api", "saas", "contract", "freelance", "sprint"],
+    keywords: ["react", "typescript", "bun", "python", "rust", "hono", "next.js", "tauri", "drizzle", "fullstack", "full-stack", "saas", "contract", "freelance", "sprint", "mobile", "expo", "godot", "scraping", "automation"],
   },
   {
     name: "remotive",

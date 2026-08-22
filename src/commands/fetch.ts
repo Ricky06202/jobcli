@@ -21,16 +21,23 @@ function extractBudget(text: string): { budget: number | null; type: string | nu
 
 function extractTechStack(text: string): string {
   const known = [
-    "react", "next.js", "nextjs", "typescript", "javascript", "node.js", "nodejs",
-    "vue", "nuxt", "svelte", "sveltekit", "angular", "astro",
-    "python", "django", "fastapi", "flask",
-    "rust", "go", "golang", "ruby", "rails",
-    "postgres", "postgresql", "mysql", "sqlite", "mongodb", "redis",
-    "tailwind", "css", "html", "graphql", "rest", "api",
-    "react native", "expo", "flutter", "swift", "kotlin",
-    "docker", "kubernetes", "aws", "gcp", "azure", "vercel", "netlify",
-    "drizzle", "prisma", "typeorm",
-    "tauri", "electron", "hono", "bun",
+    // Core
+    "typescript", "javascript", "bun", "node.js", "nodejs", "python", "rust",
+    // Frontend
+    "react", "next.js", "nextjs", "hono", "react native", "expo",
+    // Desktop
+    "tauri",
+    // Databases
+    "drizzle", "postgresql", "postgres", "sqlite",
+    // DevOps
+    "docker", "linux", "nixos", "git", "github",
+    // Other
+    "vue", "svelte", "angular", "astro", "tailwind",
+    "mongodb", "redis", "supabase",
+    "graphql", "rest", "api",
+    "kubernetes", "aws", "gcp", "azure", "vercel", "netlify",
+    "godot", "flutter", "swift", "kotlin",
+    "django", "fastapi", "flask", "ruby", "rails",
   ];
   const lower = text.toLowerCase();
   return known.filter((t) => lower.includes(t)).join(", ");

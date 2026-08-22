@@ -35,21 +35,25 @@ const BLACKLIST_KEYWORDS: Record<string, string[]> = {
 
 // ─── WHITELIST (must match 2+) ───
 const WHITELIST_TECHS = [
-  // Languages & Runtimes
-  "typescript", "javascript", "python", "rust", "bun", "node.js", "nodejs",
-  // Frameworks & Libraries
-  "react", "next.js", "nextjs", "hono", "drizzle", "drizzle orm",
-  "express", "react native", "expo", "svelte", "sveltekit",
-  "vue", "nuxt", "angular", "astro", "tailwind",
-  // Databases
-  "postgresql", "postgres", "sqlite", "mongodb", "redis", "supabase",
-  // Project Types
-  "saas", "api", "rest", "graphql", "full-stack", "fullstack",
+  // ─── Core Languages ───
+  "typescript", "javascript", "bun", "python", "rust",
+
+  // ─── Frontend & Web Frameworks ───
+  "react", "next.js", "nextjs", "hono", "react native", "expo",
+
+  // ─── Desktop & Cross-Platform ───
+  "tauri",
+
+  // ─── Databases & ORMs ───
+  "drizzle", "drizzle orm", "postgresql", "postgres", "sqlite",
+
+  // ─── DevOps & Tools ───
+  "docker", "linux", "nixos", "fedora", "git", "github",
+
+  // ─── Domains (high priority) ───
+  "saas", "full-stack", "fullstack", "api", "rest",
   "mobile app", "web app", "saas platform",
-  "bug fix", "sprint", "automation",
-  // Tools
-  "docker", "kubernetes", "aws", "vercel", "netlify",
-  "git", "ci/cd", "github actions",
+  "automation", "scraping", "godot", "game dev", "game development",
 ];
 
 // ─── GEOGRAPHIC RESTRICTIONS ───
