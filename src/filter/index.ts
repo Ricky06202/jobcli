@@ -1,68 +1,136 @@
-export interface FilterConfig {
-  minBudget: number;
-  blacklist: string[];
-  requiredTech: string[];
-  preferredTech: string[];
+export interface FilterResult {
+  status: "viable" | "discarded";
+  reason: string;
+  priorityScore: number; // 1-10
 }
 
-const DEFAULT_CONFIG: FilterConfig = {
-  minBudget: 300,
-  blacklist: [
+// ─── HARD BLACKLIST (instant discard) ───
+const BLACKLIST_KEYWORDS: Record<string, string[]> = {
+  "Engineering/Construction": [
+    "facade", "facade engineer", "window design", "curtain wall",
+    "autocad", "civil engineering", "structural engineering",
+    "as 2047", "as 1288", "construction", "building envelope",
+    "architectural drafting", "mechanical engineer", "electrical engineer",
+    "plumbing", "hvac", "civil", "geotechnical",
+  ],
+  "Non-Software Roles": [
+    "accountant", "accounting", "finance", "financial analyst",
+    "social media marketing", "content specialist", "content writer",
+    "customer support", "customer service", "project manager",
+    "business analyst", "sales", "recruiter", "hr manager",
+    "graphic designer", "video editor", "copywriter",
+    "data entry", "virtual assistant", "translator",
+  ],
+  "Exploitative": [
     "slave", "unpaid", "volunteer", "exposure only",
     "$100", "$150", "$200", "$50", "$0",
     "full-time", "permanent", "salary",
   ],
-  requiredTech: [],
-  preferredTech: [
-    "react", "next.js", "nextjs", "typescript", "node.js", "nodejs",
-    "postgres", "postgresql", "drizzle", "sqlite", "tailwind",
-    "react native", "expo", "tauri", "svelte", "vue",
+  "Non-Tech": [
+    "autocad", "solidworks", "matlab", "labview",
+    "sap", "oracle erp", "salesforce admin",
+    "medical", "nursing", "pharmaceutical", "biotech",
   ],
 };
 
-export function createFilter(overrides?: Partial<FilterConfig>): FilterConfig {
-  return { ...DEFAULT_CONFIG, ...overrides };
-}
+// ─── WHITELIST (must match 2+) ───
+const WHITELIST_TECHS = [
+  // Languages & Runtimes
+  "typescript", "javascript", "python", "rust", "bun", "node.js", "nodejs",
+  // Frameworks & Libraries
+  "react", "next.js", "nextjs", "hono", "drizzle", "drizzle orm",
+  "express", "react native", "expo", "svelte", "sveltekit",
+  "vue", "nuxt", "angular", "astro", "tailwind",
+  // Databases
+  "postgresql", "postgres", "sqlite", "mongodb", "redis", "supabase",
+  // Project Types
+  "saas", "api", "rest", "graphql", "full-stack", "fullstack",
+  "mobile app", "web app", "saas platform",
+  "bug fix", "sprint", "automation",
+  // Tools
+  "docker", "kubernetes", "aws", "vercel", "netlify",
+  "git", "ci/cd", "github actions",
+];
 
-export function isBlacklisted(title: string, description: string, config: FilterConfig): boolean {
+// ─── GEOGRAPHIC RESTRICTIONS ───
+const GEO_RESTRICTIONS = [
+  "philippines only", "india only", "pakistan only", "nigeria only",
+  "us citizenship", "us resident", "security clearance",
+  "must reside in", "must live in", "on-site only",
+  "no remote", "hybrid only",
+];
+
+export function evaluateJob(
+  title: string,
+  description: string,
+  budget?: number | null
+): FilterResult {
   const text = `${title} ${description}`.toLowerCase();
-  return config.blacklist.some((kw) => text.includes(kw.toLowerCase()));
-}
 
-export function isBelowBudget(job: { budget?: number | null }, config: FilterConfig): boolean {
-  if (job.budget == null) return false; // don't filter unknowns
-  return job.budget < config.minBudget;
-}
-
-export function scoreJob(
-  job: { title: string; description: string; budget?: number | null; techStack?: string | null },
-  config: FilterConfig
-): number {
-  let score = 0;
-  const text = `${job.title} ${job.description}`.toLowerCase();
-  const techs = (job.techStack || "").toLowerCase().split(",").map((s) => s.trim());
-
-  // Budget scoring (0-40 points)
-  if (job.budget != null) {
-    if (job.budget >= 2000) score += 40;
-    else if (job.budget >= 1000) score += 30;
-    else if (job.budget >= 500) score += 20;
-    else if (job.budget >= 300) score += 10;
-  }
-
-  // Tech match scoring (0-40 points)
-  let matchCount = 0;
-  for (const tech of config.preferredTech) {
-    if (techs.some((t) => t.includes(tech)) || text.includes(tech)) {
-      matchCount++;
+  // ─── STEP 1: Hard blacklist check ───
+  for (const [category, keywords] of Object.entries(BLACKLIST_KEYWORDS)) {
+    for (const kw of keywords) {
+      if (text.includes(kw.toLowerCase())) {
+        return {
+          status: "discarded",
+          reason: `Blacklisted (${category}): "${kw}"`,
+          priorityScore: 0,
+        };
+      }
     }
   }
-  score += Math.min(matchCount * 10, 40);
 
-  // Scope clarity scoring (0-20 points)
-  if (job.description.length > 200) score += 5; // detailed description
-  if (text.includes("deliverable") || text.includes("milestone") || text.includes("scope")) score += 10;
-  if (text.includes("fixed price") || text.includes("fixed-price") || text.includes("sprint")) score += 5;
+  // ─── STEP 2: Geographic restrictions ───
+  for (const geo of GEO_RESTRICTIONS) {
+    if (text.includes(geo)) {
+      return {
+        status: "discarded",
+        reason: `Geo-restricted: "${geo}"`,
+        priorityScore: 0,
+      };
+    }
+  }
 
-  return Math.min(score, 100);
+  // ─── STEP 3: Whitelist — must match 2+ techs ───
+  const matchedTechs: string[] = [];
+  for (const tech of WHITELIST_TECHS) {
+    if (text.includes(tech.toLowerCase())) {
+      matchedTechs.push(tech);
+    }
+  }
+
+  if (matchedTechs.length < 2) {
+    return {
+      status: "discarded",
+      reason: `Insufficient tech match (${matchedTechs.length}/2): ${matchedTechs.join(", ") || "none"}`,
+      priorityScore: 0,
+    };
+  }
+
+  // ─── STEP 4: Calculate priority score (1-10) ───
+  let score = 1;
+
+  // Tech match depth (1-4)
+  score += Math.min(matchedTechs.length, 4);
+
+  // Budget alignment (1-3)
+  if (budget != null) {
+    if (budget >= 2000) score += 3;
+    else if (budget >= 1000) score += 2;
+    else if (budget >= 500) score += 1;
+  }
+
+  // Scope clarity (1-2)
+  if (text.includes("fixed price") || text.includes("sprint") || text.includes("milestone")) score += 1;
+  if (text.includes("deliverable") || text.includes("scope") || text.includes("requirements")) score += 1;
+
+  return {
+    status: "viable",
+    reason: `Matched ${matchedTechs.length} techs: ${matchedTechs.join(", ")}`,
+    priorityScore: Math.min(score, 10),
+  };
+}
+
+export function getWhitelistTechs(): string[] {
+  return WHITELIST_TECHS;
 }

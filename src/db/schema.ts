@@ -9,9 +9,11 @@ export const jobs = sqliteTable("jobs", {
   budget: real("budget"),
   budgetType: text("budget_type"), // "fixed" | "hourly" | "unknown"
   techStack: text("tech_stack"), // comma-separated
-  source: text("source").notNull(), // "weworkremotely" | "remoteok" | "himalayas" | etc
+  source: text("source").notNull(), // "weworkremotely" | "himalayas" | etc
   clientHistory: text("client_history"), // "new" | "repeat" | "verified"
-  score: integer("score").default(0), // 0-100
+  score: integer("score").default(0), // 0-100 (old scoring)
+  priorityScore: integer("priority_score").default(0), // 1-10 (new smart scoring)
+  reason: text("reason"), // why viable/discarded
   status: text("status").default("new"), // "new" | "saved" | "discarded" | "applied"
   fetchedAt: integer("fetched_at", { mode: "timestamp" }).notNull(),
 });

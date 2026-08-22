@@ -27,10 +27,16 @@ sqlite.exec(`
     source TEXT NOT NULL,
     client_history TEXT,
     score INTEGER DEFAULT 0,
+    priority_score INTEGER DEFAULT 0,
+    reason TEXT,
     status TEXT DEFAULT 'new',
     fetched_at INTEGER NOT NULL
   );
 `);
+
+// Migration: add new columns if missing
+try { sqlite.exec("ALTER TABLE jobs ADD COLUMN priority_score INTEGER DEFAULT 0"); } catch {}
+try { sqlite.exec("ALTER TABLE jobs ADD COLUMN reason TEXT"); } catch {}
 
 export const db = drizzle(sqlite, { schema });
 export { DB_PATH };
