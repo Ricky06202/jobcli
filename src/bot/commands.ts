@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, type ChatInputCommandInteraction } from "discord.js";
 import { db } from "../db";
 import { jobs } from "../db/schema";
-import { eq, desc, sql, and, like, or, gte } from "drizzle-orm";
+import { eq, desc, sql, and, like, or, gte, ne } from "drizzle-orm";
 
 export const commands = [
   new SlashCommandBuilder()
@@ -167,7 +167,12 @@ export async function handleStats(interaction: ChatInputCommandInteraction) {
     .from(jobs).groupBy(jobs.status);
 
   const lines = all.map((r) => {
-    const emoji = r.status === "new" ? "🆕" : r.status === "saved" ? "💾" : r.status === "applied" ? "📨" : "🗑️";
+    const emoji =
+      r.status === "new" ? "🆕" :
+      r.status === "saved" ? "💾" :
+      r.status === "applied" ? "📨" :
+      r.status === "stale" ? "⏳" :
+      "🗑️";
     return `${emoji} **${r.status || "unknown"}**: ${r.count}`;
   });
 
@@ -181,7 +186,10 @@ export async function handleSearch(interaction: ChatInputCommandInteraction) {
   const term = `%${query}%`;
 
   const rows = await db.select().from(jobs)
-    .where(or(like(jobs.title, term), like(jobs.description, term), like(jobs.techStack, term)))
+    .where(and(
+      or(like(jobs.title, term), like(jobs.description, term), like(jobs.techStack, term)),
+      ne(jobs.status, "stale"),
+    ))
     .orderBy(desc(jobs.priorityScore))
     .limit(5);
 

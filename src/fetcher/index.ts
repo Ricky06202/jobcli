@@ -71,6 +71,18 @@ const FEEDS: FeedSource[] = [
     }),
     keywords: ["react", "typescript", "node", "python", "fullstack", "full-stack", "backend", "frontend", "api", "saas", "contract", "freelance", "sprint", "rust", "next.js"],
   },
+  {
+    name: "landingjobs",
+    url: "https://landing.jobs/feed",
+    parseItem: (item) => ({
+      title: item.title || "",
+      url: item.link || "",
+      description: item.contentSnippet || item.content || item.summary || "",
+      company: item.creator || item.author?.name || "",
+      source: "landingjobs",
+    }),
+    keywords: ["react", "typescript", "bun", "python", "rust", "hono", "next.js", "tauri", "drizzle", "fullstack", "full-stack", "saas", "contract", "freelance", "sprint", "mobile", "expo", "node", "api", "backend", "frontend", "ios", "android", "devops", "kubernetes", "docker"],
+  },
 ];
 
 function matchesKeywords(text: string, keywords: string[]): boolean {

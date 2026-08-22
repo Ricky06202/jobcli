@@ -39,6 +39,9 @@ async function autoFetch(client: Client) {
 
   console.log(chalk.dim("  Auto-fetching jobs..."));
 
+  const { purgeOldJobs } = await import("./purge");
+  await purgeOldJobs();
+
   const { fetchFromSource } = await import("../fetcher");
   const { evaluateJob } = await import("../filter");
 

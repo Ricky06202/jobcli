@@ -28,7 +28,6 @@ const BLACKLIST_KEYWORDS: Record<string, string[]> = {
   "Exploitative": [
     "slave", "unpaid", "volunteer", "exposure only",
     "$100", "$150", "$200", "$50", "$0",
-    "full-time", "permanent", "salary",
   ],
   "Non-Tech": [
     "autocad", "solidworks", "matlab", "labview",

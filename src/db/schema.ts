@@ -14,7 +14,7 @@ export const jobs = sqliteTable("jobs", {
   score: integer("score").default(0), // 0-100 (old scoring)
   priorityScore: integer("priority_score").default(0), // 1-10 (new smart scoring)
   reason: text("reason"), // why viable/discarded
-  status: text("status").default("new"), // "new" | "saved" | "discarded" | "applied"
+  status: text("status").default("new"), // "new" | "saved" | "discarded" | "applied" | "stale"
   fetchedAt: integer("fetched_at", { mode: "timestamp" }).notNull(),
 });
 
