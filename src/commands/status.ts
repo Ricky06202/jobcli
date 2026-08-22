@@ -28,6 +28,13 @@ export async function saveJobs(ids: number[]) {
   console.log(chalk.dim(`  ${ids.length} jobs saved`));
 }
 
+export async function applyJobs(ids: number[]) {
+  for (const id of ids) {
+    await updateJobStatus(id, "applied");
+  }
+  console.log(chalk.dim(`  ${ids.length} jobs marked as applied`));
+}
+
 export async function showStats() {
   const all = await db.select({ status: jobs.status, count: sql<number>`count(*)` }).from(jobs).groupBy(jobs.status);
   console.log("\n  Job Stats:");

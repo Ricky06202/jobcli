@@ -1,0 +1,180 @@
+import { Client, GatewayIntentBits, Events } from "discord.js";
+import { REST, Routes } from "discord.js";
+import {
+  commands,
+  handleFetch,
+  handleJobs,
+  handleStats,
+  handleSearch,
+} from "./commands";
+import { db } from "../db";
+import { jobs } from "../db/schema";
+import { eq, desc, and, gte } from "drizzle-orm";
+import chalk from "chalk";
+
+const TOKEN = process.env.DISCORD_TOKEN!;
+const CLIENT_ID = process.env.CLIENT_ID!;
+const CHANNEL_NEW_JOBS = process.env.CHANNEL_NEW_JOBS!;
+const FETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
+// ─── Register slash commands ───
+async function registerCommands() {
+  const rest = new REST({ version: "10" }).setToken(TOKEN);
+  console.log(chalk.dim("  Registering slash commands..."));
+
+  await rest.put(Routes.applicationCommands(CLIENT_ID), {
+    body: commands.map((c) => c.toJSON()),
+  });
+
+  console.log(chalk.green("  ✓ Slash commands registered"));
+}
+
+// ─── Auto-fetch loop ───
+async function autoFetch(client: Client) {
+  const channel = client.channels.cache.get(CHANNEL_NEW_JOBS);
+  if (!channel || !("send" in channel)) return;
+
+  console.log(chalk.dim("  Auto-fetching jobs..."));
+
+  const { fetchFromSource } = await import("../fetcher");
+  const { evaluateJob } = await import("../filter");
+
+  const rawJobs = await fetchFromSource();
+  let added = 0;
+
+  for (const raw of rawJobs) {
+    const existing = await db.select().from(jobs).where(eq(jobs.url, raw.url)).limit(1);
+    if (existing.length > 0) continue;
+
+    const { budget, type } = extractBudget(`${raw.title} ${raw.description}`);
+    const techStack = extractTechStack(`${raw.title} ${raw.description}`);
+    const result = evaluateJob(raw.title, raw.description, budget);
+
+    await db.insert(jobs).values({
+      title: raw.title,
+      company: raw.company || null,
+      url: raw.url,
+      description: raw.description,
+      budget,
+      budgetType: type,
+      techStack: techStack || null,
+      source: raw.source,
+      priorityScore: result.status === "viable" ? result.priorityScore : 0,
+      reason: result.reason,
+      score: result.status === "viable" ? result.priorityScore * 10 : 0,
+      status: result.status === "discarded" ? "discarded" : "new",
+      fetchedAt: new Date(),
+    });
+
+    if (result.status === "viable") added++;
+  }
+
+  if (added > 0) {
+    const newJobs = await db.select().from(jobs)
+      .where(and(eq(jobs.status, "new"), gte(jobs.priorityScore, 5)))
+      .orderBy(desc(jobs.priorityScore))
+      .limit(3);
+
+    for (const job of newJobs) {
+      const { EmbedBuilder } = await import("discord.js");
+      const scoreColor =
+        (job.priorityScore || 0) >= 8 ? 0x2ecc71 :
+        (job.priorityScore || 0) >= 5 ? 0xf1c40f : 0xe74c3c;
+
+      const embed = new EmbedBuilder()
+        .setTitle(job.title)
+        .setURL(job.url)
+        .setColor(scoreColor)
+        .addFields(
+          { name: "Empresa", value: job.company || "Desconocida", inline: true },
+          { name: "Prioridad", value: `${job.priorityScore || 0}/10`, inline: true },
+        );
+
+      if (job.budget) embed.addFields({ name: "Presupuesto", value: `$${job.budget.toLocaleString()} ${job.budgetType || ""}`, inline: true });
+      if (job.techStack) embed.addFields({ name: "Stack", value: job.techStack.substring(0, 200) });
+
+      await channel.send({ embeds: [embed] });
+    }
+
+    await channel.send(`🔔 **${added}** nuevos trabajos encontrados (top ${newJobs.length} enviados aquí)`);
+  }
+}
+
+// ─── Main ───
+async function main() {
+  console.log(chalk.bold("\n  jobcli bot\n"));
+
+  await registerCommands();
+
+  const client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+    ],
+  });
+
+  client.once(Events.ClientReady, (c) => {
+    console.log(chalk.green(`  ✓ Bot online: ${c.user.tag}`));
+    console.log(chalk.dim(`  Auto-fetch cada ${FETCH_INTERVAL_MS / 60000} minutos`));
+
+    // Start auto-fetch loop
+    autoFetch(client);
+    setInterval(() => autoFetch(client), FETCH_INTERVAL_MS);
+  });
+
+  client.on(Events.InteractionCreate, async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    try {
+      switch (interaction.commandName) {
+        case "fetch": await handleFetch(interaction); break;
+        case "jobs": await handleJobs(interaction); break;
+        case "stats": await handleStats(interaction); break;
+        case "search": await handleSearch(interaction); break;
+      }
+    } catch (err) {
+      console.error(chalk.red(`  Error: ${err}`));
+      const reply = { content: "❌ Error ejecutando el comando.", ephemeral: true };
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply);
+      } else {
+        await interaction.reply(reply);
+      }
+    }
+  });
+
+  await client.login(TOKEN);
+}
+
+// ─── Helpers ───
+
+function extractBudget(text: string): { budget: number | null; type: string | null } {
+  const match = text.match(/\$(\d[\d,]*(?:\.\d{2})?)\s*(?:-?\s*\$?\d[\d,]*)?\s*(?:\/\s*(?:hr|hour|mo|month))?/i);
+  if (match) {
+    const budget = parseFloat(match[1].replace(/,/g, ""));
+    const isHourly = /\/\s*(?:hr|hour)/i.test(text);
+    const isMonthly = /\/\s*(?:mo|month)/i.test(text);
+    return { budget, type: isHourly ? "hourly" : isMonthly ? "monthly" : "fixed" };
+  }
+  return { budget: null, type: null };
+}
+
+function extractTechStack(text: string): string {
+  const known = [
+    "typescript", "javascript", "bun", "node.js", "nodejs", "python", "rust",
+    "react", "next.js", "nextjs", "hono", "react native", "expo",
+    "tauri", "drizzle", "postgresql", "postgres", "sqlite",
+    "docker", "linux", "nixos", "git", "github",
+    "vue", "svelte", "angular", "astro", "tailwind",
+    "mongodb", "redis", "supabase", "graphql", "rest", "api",
+    "kubernetes", "aws", "gcp", "azure", "vercel", "netlify",
+    "godot", "flutter", "swift", "kotlin", "django", "fastapi", "flask",
+  ];
+  const lower = text.toLowerCase();
+  return known.filter((t) => lower.includes(t)).join(", ");
+}
+
+main().catch((err) => {
+  console.error(chalk.red(`Fatal: ${err}`));
+  process.exit(1);
+});

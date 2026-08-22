@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { jobs } from "../db/schema";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, like, or, gte, ne } from "drizzle-orm";
 import chalk from "chalk";
 
 export async function listJobs(opts: {
@@ -11,14 +11,28 @@ export async function listJobs(opts: {
   limit?: number;
   sort?: string;
   viable?: boolean;
+  remoteOnly?: boolean;
+  search?: string;
 }) {
   const conditions = [];
 
   if (opts.status) conditions.push(eq(jobs.status, opts.status));
-  if (opts.minScore) conditions.push(sql`${jobs.priority_score} >= ${opts.minScore}`);
-  if (opts.minBudget) conditions.push(sql`${jobs.budget} >= ${opts.minBudget}`);
+  if (opts.minScore) conditions.push(gte(jobs.priorityScore, opts.minScore));
+  if (opts.minBudget) conditions.push(gte(jobs.budget, opts.minBudget));
   if (opts.source) conditions.push(eq(jobs.source, opts.source));
-  if (opts.viable) conditions.push(sql`${jobs.status} != 'discarded'`);
+  if (opts.viable) conditions.push(ne(jobs.status, "discarded"));
+  if (opts.remoteOnly) {
+    conditions.push(or(like(jobs.description, "%remote%"), like(jobs.title, "%remote%"))!);
+  }
+  if (opts.search) {
+    const term = `%${opts.search}%`;
+    conditions.push(or(
+      like(jobs.title, term),
+      like(jobs.description, term),
+      like(jobs.techStack, term),
+      like(jobs.company, term),
+    )!);
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
   const orderBy =

@@ -107,6 +107,18 @@ const FEEDS: FeedSource[] = [
     }),
     keywords: ["react", "typescript", "node", "python", "fullstack", "full-stack", "backend", "frontend", "api", "saas", "contract", "freelance", "sprint", "rust", "next.js"],
   },
+  {
+    name: "remoteok",
+    url: "https://remoteok.com/remote-dev-jobs.rss",
+    parseItem: (item) => ({
+      title: item.title || "",
+      url: item.link || "",
+      description: item.contentSnippet || item.content || "",
+      company: item.creator || "",
+      source: "remoteok",
+    }),
+    keywords: ["react", "typescript", "bun", "python", "rust", "hono", "next.js", "tauri", "drizzle", "fullstack", "full-stack", "saas", "contract", "freelance", "sprint", "mobile", "expo", "node", "api", "backend", "frontend"],
+  },
 ];
 
 function matchesKeywords(text: string, keywords: string[]): boolean {

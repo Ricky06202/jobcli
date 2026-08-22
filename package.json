@@ -11,7 +11,9 @@
     "dev": "bun --watch run src/index.ts",
     "fetch": "bun run src/index.ts fetch",
     "list": "bun run src/index.ts list",
-    "stats": "bun run src/index.ts stats"
+    "stats": "bun run src/index.ts stats",
+    "bot": "bun run src/bot/index.ts",
+    "bot:dev": "bun --watch run src/bot/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -23,6 +25,7 @@
   "dependencies": {
     "chalk": "4",
     "commander": "^15.0.0",
+    "discord.js": "^14.27.0",
     "drizzle-orm": "^0.45.2",
     "rss-parser": "^3.13.0"
   }
