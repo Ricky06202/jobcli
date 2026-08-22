@@ -161,6 +161,20 @@ async function main() {
     if (!interaction.isChatInputCommand()) return;
 
     try {
+      // Comandos que escriben en canales: solo admins del servidor
+      const adminOnly = ["fetch", "poblar"];
+      if (adminOnly.includes(interaction.commandName)) {
+        const memberPerms = interaction.memberPermissions;
+        const isAdmin = memberPerms?.has("Administrator") ?? false;
+        if (!isAdmin) {
+          await interaction.reply({
+            content: "⛔ Este comando solo está disponible para administradores del servidor.",
+            ephemeral: true,
+          });
+          return;
+        }
+      }
+
       switch (interaction.commandName) {
         case "fetch": await handleFetch(interaction); break;
         case "jobs": await handleJobs(interaction); break;
