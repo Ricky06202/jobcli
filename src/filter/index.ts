@@ -20,6 +20,10 @@ const BLACKLIST_KEYWORDS: Record<string, string[]> = {
     "business analyst", "sales", "recruiter", "hr manager",
     "graphic designer", "video editor", "copywriter",
     "data entry", "virtual assistant", "translator",
+    "product designer", "product manager", "product owner",
+    "ux designer", "ui designer", "ux researcher",
+    "engineering manager", "delivery manager", "scrum master",
+    "devrel", "developer advocate",
   ],
   "Exploitative": [
     "slave", "unpaid", "volunteer", "exposure only",
@@ -70,11 +74,21 @@ export function evaluateJob(
   budget?: number | null
 ): FilterResult {
   const text = `${title} ${description}`.toLowerCase();
+  const titleLower = title.toLowerCase();
 
   // ─── STEP 1: Hard blacklist check ───
+  // Los "Non-Software Roles" se evalúan sobre el TÍTULO (donde está el puesto
+  // real); la descripción puede mencionar roles ajenos (ej: "work with product
+  // managers") y eso no significa que el puesto sea ese rol.
   for (const [category, keywords] of Object.entries(BLACKLIST_KEYWORDS)) {
     for (const kw of keywords) {
-      if (text.includes(kw.toLowerCase())) {
+      const kwLower = kw.toLowerCase();
+      const hitsTitle = titleLower.includes(kwLower);
+      const hitsBody = text.includes(kwLower);
+      const shouldDiscard =
+        category === "Non-Software Roles" ? hitsTitle : hitsBody;
+
+      if (shouldDiscard) {
         return {
           status: "discarded",
           reason: `Blacklisted (${category}): "${kw}"`,

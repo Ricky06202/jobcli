@@ -113,8 +113,7 @@ async function autoFetch(client: Client) {
       await channel.send({ embeds: [embed] });
 
       // Canales de categoría
-      const matchText = `${job.title} ${job.description || ""} ${job.techStack || ""}`;
-      const matched = matchChannels(matchText);
+      const matched = matchChannels(job.title, job.description || "");
       for (const cat of matched) {
         const catChannel = client.channels.cache.get(cat.channelId);
         if (catChannel && "send" in catChannel) {

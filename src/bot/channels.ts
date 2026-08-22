@@ -116,20 +116,34 @@ function matchesAny(text: string, keywords: string[]): boolean {
   return keywords.some((kw) => lower.includes(kw));
 }
 
+// Cuenta cuántas keywords matchean en un texto. Las del título valen x2
+// porque el título define el puesto real (la descripción tiene texto
+// genérico de la empresa que contamina el match).
+function countMatches(title: string, description: string, keywords: string[]): number {
+  const t = title.toLowerCase();
+  const d = description.toLowerCase();
+  let count = 0;
+  for (const kw of keywords) {
+    if (t.includes(kw)) count += 2;
+    else if (d.includes(kw)) count += 1;
+  }
+  return count;
+}
+
 // Determina a qué canales de categoría debe ir un job.
-// - Si tiene `keywords`: alcanza con 1 match.
-// - Si tiene `requireBoth`: cada sub-lista debe matchear al menos 1
-//   (ej: fullstack = 1 frontend + 1 backend).
-export function matchChannels(text: string): JobChannel[] {
+// - `keywords`: exige MIN_MATCHES (2) sumando título (x2) + descripción (x1).
+// - `requireBoth`: cada sub-lista debe matchear al menos 1 (fullstack = 1 front + 1 back).
+const MIN_MATCHES = 2;
+
+export function matchChannels(title: string, description: string): JobChannel[] {
   const active = getActiveChannels();
-  const lower = text.toLowerCase();
 
   return active.filter((c) => {
-    // Regla especial: si es "fullstack" en el texto y existe canal fullstack,
-    // prioriza mandarlo ahí.
     if (c.requireBoth && c.requireBoth.length > 0) {
-      return c.requireBoth.every((sub) => sub.some((kw) => lower.includes(kw)));
+      return c.requireBoth.every((sub) =>
+        sub.some((kw) => title.toLowerCase().includes(kw) || description.toLowerCase().includes(kw))
+      );
     }
-    return matchesAny(lower, c.keywords);
+    return countMatches(title, description, c.keywords) >= MIN_MATCHES;
   });
 }

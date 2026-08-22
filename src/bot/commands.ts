@@ -286,8 +286,7 @@ export async function handlePoblar(interaction: ChatInputCommandInteraction) {
   const byChannel: Record<string, number> = {};
 
   for (const job of rows) {
-    const matchText = `${job.title} ${job.description || ""} ${job.techStack || ""}`;
-    const matched = matchChannels(matchText);
+    const matched = matchChannels(job.title, job.description || "");
 
     for (const cat of matched) {
       const ch = interaction.client.channels.cache.get(cat.channelId);
