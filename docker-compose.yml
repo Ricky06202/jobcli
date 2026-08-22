@@ -1,0 +1,13 @@
+services:
+  jobcli-bot:
+    build: .
+    container_name: jobcli-bot
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - jobcli-data:/app/data
+    environment:
+      - JOBCLI_DB=/app/data/jobs.db
+
+volumes:
+  jobcli-data:
