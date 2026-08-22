@@ -10,7 +10,7 @@ import {
 } from "./commands";
 import { db } from "../db";
 import { jobs } from "../db/schema";
-import { eq, desc, and, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import chalk from "chalk";
 
 const TOKEN = process.env.DISCORD_TOKEN!;
@@ -41,7 +41,7 @@ async function autoFetch(client: Client) {
   const { evaluateJob } = await import("../filter");
 
   const rawJobs = await fetchFromSource();
-  let added = 0;
+  const newViable: { job: any; score: number }[] = [];
 
   for (const raw of rawJobs) {
     const existing = await db.select().from(jobs).where(eq(jobs.url, raw.url)).limit(1);
@@ -67,16 +67,30 @@ async function autoFetch(client: Client) {
       fetchedAt: new Date(),
     });
 
-    if (result.status === "viable") added++;
+    if (result.status === "viable") {
+      newViable.push({
+        job: {
+          title: raw.title,
+          url: raw.url,
+          company: raw.company,
+          source: raw.source,
+          budget,
+          budgetType: type,
+          techStack,
+          priorityScore: result.priorityScore,
+        },
+        score: result.priorityScore,
+      });
+    }
   }
 
-  if (added > 0) {
-    const newJobs = await db.select().from(jobs)
-      .where(and(eq(jobs.status, "new"), gte(jobs.priorityScore, 5)))
-      .orderBy(desc(jobs.priorityScore))
-      .limit(3);
+  if (newViable.length > 0) {
+    const top = newViable
+      .filter((j) => j.score >= 5)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
 
-    for (const job of newJobs) {
+    for (const { job } of top) {
       const { EmbedBuilder } = await import("discord.js");
       const scoreColor =
         (job.priorityScore || 0) >= 8 ? 0x2ecc71 :
@@ -97,7 +111,8 @@ async function autoFetch(client: Client) {
       await channel.send({ embeds: [embed] });
     }
 
-    await channel.send(`🔔 **${added}** nuevos trabajos encontrados (top ${newJobs.length} enviados aquí)`);
+    const discardedNow = newViable.length - top.length;
+    await channel.send(`🔔 **${newViable.length}** trabajos nuevos (score ≥ 5: ${top.length} enviados aquí${discardedNow > 0 ? `, ${discardedNow} con score < 5 solo en la DB` : ""})`);
   }
 }
 
