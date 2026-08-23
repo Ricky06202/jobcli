@@ -68,15 +68,31 @@ export function jobEmbed(job: any) {
   if (job.techStack) {
     embed.addFields({ name: "🧰 Stack", value: job.techStack.substring(0, 200) });
   }
-  if (job.description) {
-    const clean = job.description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-    if (clean.length > 0) {
-      embed.setDescription(clean.substring(0, 500));
-    }
+  const desc = cleanDescription(job.description);
+  if (desc) {
+    embed.setDescription(desc.substring(0, 500));
   }
   embed.setFooter({ text: `Fuente: ${job.source}${job.reason ? ` • ${job.reason}` : ""}` });
 
   return embed;
+}
+
+// Limpia la descripción cruda del RSS: quita HTML, y el boilerplate de WWR
+// ("Headquarters: X", "URL: http...", "About <Empresa>", "Company Description").
+function cleanDescription(desc: string | null | undefined): string {
+  if (!desc) return "";
+  let text = desc
+    .replace(/<[^>]+>/g, " ")          // quitar HTML
+    // quitar "Headquarters: <lo que sea>" hasta el final de la línea
+    .replace(/Headquarters:[^\n]*(?:\n|$)/gi, " ")
+    // quitar líneas "URL: http..."
+    .replace(/URL:[^\n]*https?:\/\/\S+[^\n]*/gi, " ")
+    .replace(/\bAbout\s+[A-Z][a-zA-Z0-9.\s&'-]{0,40}\b/gi, " ") // quitar "About Empresa"
+    .replace(/Company Description/gi, " ")
+    .replace(/Role description and responsibilities/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text;
 }
 
 export async function handleFetch(interaction: ChatInputCommandInteraction) {
