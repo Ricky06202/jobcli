@@ -8,15 +8,15 @@ const STALE_DAYS = 30;
 // sin ser tocados. Evita que la DB acumule ofertas viejas como "nuevas".
 export async function purgeOldJobs(): Promise<number> {
   const sqlite = new Database(DB_PATH);
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - STALE_DAYS);
+  // fetched_at se guarda como epoch (segundos) por drizzle mode:"timestamp"
+  const cutoffSec = Math.floor(Date.now() / 1000) - STALE_DAYS * 24 * 60 * 60;
 
   const result = sqlite
     .prepare(
       `UPDATE jobs SET status = 'stale'
        WHERE status = 'new' AND fetched_at < ?`
     )
-    .run(cutoff.toISOString());
+    .run(cutoffSec);
   sqlite.close();
 
   const count = result.changes ?? 0;
