@@ -9,6 +9,7 @@ import {
   handleInfo,
   handleCanales,
   handlePoblar,
+  jobEmbed,
 } from "./commands";
 import { db } from "../db";
 import { jobs } from "../db/schema";
@@ -91,26 +92,10 @@ async function autoFetch(client: Client) {
   }
 
   if (newViable.length > 0) {
-    const { EmbedBuilder } = await import("discord.js");
     const { matchChannels } = await import("./channels");
 
     for (const { job } of newViable.sort((a, b) => b.score - a.score)) {
-      const scoreColor =
-        (job.priorityScore || 0) >= 8 ? 0x2ecc71 :
-        (job.priorityScore || 0) >= 5 ? 0xf1c40f : 0xe74c3c;
-
-      const embed = new EmbedBuilder()
-        .setTitle(job.title)
-        .setURL(job.url)
-        .setColor(scoreColor)
-        .addFields(
-          { name: "Empresa", value: job.company || "Desconocida", inline: true },
-          { name: "Fuente", value: job.source, inline: true },
-          { name: "Prioridad", value: `${job.priorityScore || 0}/10`, inline: true },
-        );
-
-      if (job.budget) embed.addFields({ name: "Presupuesto", value: `$${job.budget.toLocaleString()} ${job.budgetType || ""}`, inline: true });
-      if (job.techStack) embed.addFields({ name: "Stack", value: job.techStack.substring(0, 200) });
+      const embed = jobEmbed(job);
 
       // Canal personal (el del dueño del bot)
       await channel.send({ embeds: [embed] });

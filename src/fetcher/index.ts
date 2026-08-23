@@ -21,6 +21,18 @@ interface FeedSource {
   keywords?: string[];
 }
 
+// Extrae la empresa del job. Primero el campo directo del feed; si viene vacío,
+// la saca del título con el patrón "Empresa: Puesto" (formato de We Work Remotely).
+function extractCompany(item: any, title: string): string {
+  const direct = item.creator || item.author || item["dc:creator"] || "";
+  if (direct && direct.trim() !== "Company Name") return direct.trim();
+
+  const match = title.match(/^(.+?):\s+/);
+  if (match) return match[1].trim();
+
+  return "";
+}
+
 const FEEDS: FeedSource[] = [
   // ─── Remote-first job boards ───
   {
@@ -30,7 +42,7 @@ const FEEDS: FeedSource[] = [
       title: item.title || "",
       url: item.link || "",
       description: item.contentSnippet || item.content || "",
-      company: item.creator || item["dc:creator"] || "",
+      company: extractCompany(item, item.title || ""),
       source: "weworkremotely",
     }),
     keywords: ["react", "typescript", "bun", "python", "rust", "hono", "next.js", "tauri", "drizzle", "fullstack", "full-stack", "saas", "contract", "freelance", "sprint", "mobile", "expo", "godot", "scraping", "automation"],
@@ -42,7 +54,7 @@ const FEEDS: FeedSource[] = [
       title: item.title || "",
       url: item.link || "",
       description: item.contentSnippet || item.content || "",
-      company: item.creator || item["dc:creator"] || "",
+      company: extractCompany(item, item.title || ""),
       source: "weworkremotely",
     }),
     keywords: ["react", "typescript", "bun", "python", "rust", "hono", "next.js", "tauri", "drizzle", "fullstack", "full-stack", "saas", "contract", "freelance", "sprint", "mobile", "expo", "godot", "scraping", "automation"],
@@ -54,7 +66,7 @@ const FEEDS: FeedSource[] = [
       title: item.title || "",
       url: item.link || "",
       description: item.contentSnippet || item.content || "",
-      company: item.creator || "",
+      company: extractCompany(item, item.title || ""),
       source: "remotive",
     }),
     keywords: ["react", "typescript", "node", "python", "fullstack", "full-stack", "backend", "frontend", "api", "saas", "contract", "freelance", "sprint", "rust", "next.js"],
@@ -66,7 +78,7 @@ const FEEDS: FeedSource[] = [
       title: item.title || "",
       url: item.link || "",
       description: item.contentSnippet || item.content || "",
-      company: item.creator || "",
+      company: extractCompany(item, item.title || ""),
       source: "himalayas",
     }),
     keywords: ["react", "typescript", "node", "python", "fullstack", "full-stack", "backend", "frontend", "api", "saas", "contract", "freelance", "sprint", "rust", "next.js"],
@@ -78,7 +90,7 @@ const FEEDS: FeedSource[] = [
       title: item.title || "",
       url: item.link || "",
       description: item.contentSnippet || item.content || item.summary || "",
-      company: item.creator || item.author?.name || "",
+      company: extractCompany(item, item.title || ""),
       source: "landingjobs",
     }),
     keywords: ["react", "typescript", "bun", "python", "rust", "hono", "next.js", "tauri", "drizzle", "fullstack", "full-stack", "saas", "contract", "freelance", "sprint", "mobile", "expo", "node", "api", "backend", "frontend", "ios", "android", "devops", "kubernetes", "docker"],

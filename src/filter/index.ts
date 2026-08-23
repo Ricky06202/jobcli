@@ -1,4 +1,4 @@
-import { matchTechs } from "./techs";
+import { KNOWN_TECHS, matchTechs } from "./techs";
 
 export interface FilterResult {
   status: "viable" | "discarded";
@@ -123,5 +123,5 @@ export function evaluateJob(
 }
 
 export function getWhitelistTechs(): string[] {
-  return WHITELIST_TECHS;
+  return KNOWN_TECHS;
 }

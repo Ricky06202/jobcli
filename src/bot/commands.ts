@@ -46,31 +46,34 @@ export const commands = [
     ),
 ];
 
-function jobEmbed(job: any) {
+export function jobEmbed(job: any) {
   const scoreColor =
     (job.priorityScore || 0) >= 8 ? 0x2ecc71 :
     (job.priorityScore || 0) >= 5 ? 0xf1c40f :
     0xe74c3c;
 
   const embed = new EmbedBuilder()
-    .setTitle(job.title)
+    .setTitle(job.title.substring(0, 256))
     .setURL(job.url)
     .setColor(scoreColor)
     .addFields(
-      { name: "Empresa", value: job.company || "Desconocida", inline: true },
-      { name: "Fuente", value: job.source, inline: true },
-      { name: "Prioridad", value: `${job.priorityScore || 0}/10`, inline: true },
+      { name: "🏢 Empresa", value: job.company || "No especificada", inline: true },
+      { name: "🔢 Prioridad", value: `${job.priorityScore || 0}/10`, inline: true },
     );
 
   if (job.budget) {
-    embed.addFields({ name: "Presupuesto", value: `$${job.budget.toLocaleString()} ${job.budgetType || ""}`, inline: true });
+    embed.addFields({ name: "💰 Presupuesto", value: `$${job.budget.toLocaleString()} ${job.budgetType || ""}`, inline: true });
   }
   if (job.techStack) {
-    embed.addFields({ name: "Stack", value: job.techStack.substring(0, 200) });
+    embed.addFields({ name: "🧰 Stack", value: job.techStack.substring(0, 200) });
   }
-  if (job.reason) {
-    embed.setFooter({ text: job.reason.substring(0, 200) });
+  if (job.description) {
+    const clean = job.description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if (clean.length > 0) {
+      embed.setDescription(clean.substring(0, 500));
+    }
   }
+  embed.setFooter({ text: `Fuente: ${job.source}${job.reason ? ` • ${job.reason}` : ""}` });
 
   return embed;
 }
