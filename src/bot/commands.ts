@@ -58,6 +58,7 @@ export function jobEmbed(job: any) {
     .setColor(scoreColor)
     .addFields(
       { name: "🏢 Empresa", value: job.company || "No especificada", inline: true },
+      { name: "🌍 Ubicación", value: job.location || "No especificada", inline: true },
       { name: "🔢 Prioridad", value: `${job.priorityScore || 0}/10`, inline: true },
     );
 
@@ -104,6 +105,7 @@ export async function handleFetch(interaction: ChatInputCommandInteraction) {
       company: raw.company || null,
       url: raw.url,
       description: raw.description,
+      location: raw.location || null,
       budget,
       budgetType: type,
       techStack: techStack || null,

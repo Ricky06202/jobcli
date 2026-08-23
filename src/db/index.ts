@@ -21,6 +21,7 @@ sqlite.exec(`
     company TEXT,
     url TEXT NOT NULL UNIQUE,
     description TEXT,
+    location TEXT,
     budget REAL,
     budget_type TEXT,
     tech_stack TEXT,
@@ -37,6 +38,7 @@ sqlite.exec(`
 // Migration: add new columns if missing
 try { sqlite.exec("ALTER TABLE jobs ADD COLUMN priority_score INTEGER DEFAULT 0"); } catch {}
 try { sqlite.exec("ALTER TABLE jobs ADD COLUMN reason TEXT"); } catch {}
+try { sqlite.exec("ALTER TABLE jobs ADD COLUMN location TEXT"); } catch {}
 
 export const db = drizzle(sqlite, { schema });
 export { DB_PATH };

@@ -6,6 +6,7 @@ export const jobs = sqliteTable("jobs", {
   company: text("company"),
   url: text("url").notNull().unique(),
   description: text("description"),
+  location: text("location"),
   budget: real("budget"),
   budgetType: text("budget_type"), // "fixed" | "hourly" | "unknown"
   techStack: text("tech_stack"), // comma-separated
